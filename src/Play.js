@@ -3,13 +3,16 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Firestore from './services/firestore.js';
 import Board from './Board';
+import Solution from './Solution';
 import './Play.css';
 import Leaderboard from './Leaderboard';
 
 const useStyles = makeStyles({
-  restart: {
-    left: '50%',
-    marginLeft: '-38px',
+  controlButtons: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    color: '#777',
   }
 });
 
@@ -25,6 +28,7 @@ function Play(props) {
   const [score, setScore] = useState(0);
   const helpMessage = "Use the arrow keys to fill the grid!";
   const [playedFirstMove, setPlayedFirstMove] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
 
   const default_grid ={
     title: "Armada",
@@ -33,7 +37,11 @@ function Play(props) {
       ["1", "1", "1", "1"],
       ["1", "1", "S", "1"],
       ["0", "0", "1", "1"],
-      ["0", "0", "F", "0"]]
+      ["0", "0", "F", "0"]
+    ],
+    solution: [
+      [2,1],[1,1],[0,1],[0,0],[1,0],[2,0],[3,0],[3,1],[3,2],[2,2],[2,3]
+    ],
   };
 
   function stopTimer() {
@@ -103,6 +111,11 @@ function Play(props) {
     window.location = window.location;  // Refresh page.
   }
 
+  function giveup() {
+    setShowSolution(true);
+    stopTimer();
+  }
+
   return (<>
     { grid ?
       <div className="play-header">
@@ -113,7 +126,9 @@ function Play(props) {
       <div className="trophy"></div>
       <div>
         {
-          grid // Wait until grid is loaded to render it.
+          showSolution
+          ? <Solution grid={grid} />
+          : grid // Wait until grid is loaded to render it.
             ? <Board grid={grid.data} finishGame={finishGame} />
             : <></>
         }
@@ -126,7 +141,14 @@ function Play(props) {
     </div>
     { finished ? <Leaderboard user={props.user} solveTimeMilliseconds={score} highscores={highscores} /> : "" }
     { playedFirstMove
-        ? <Button onClick={restart} className={classes.restart}>Restart</Button>
+        ? <div className={classes.controlButtons}>
+            { !showSolution
+              ? <Button onClick={restart}>Restart</Button>
+              : <></> }
+            { !showSolution && grid && grid.solution
+              ? <Button onClick={giveup}>Give Up</Button>
+              : <></> }
+          </div>
         : <div className="help"> {helpMessage} </div> }
   </>);
 }

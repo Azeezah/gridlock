@@ -29,8 +29,13 @@ function Board(props) {
   const [moves, setMoves] = useState([start.x+';'+start.y]);
   const [curr_x, setCurr_x] = useState(start.x);
   const [curr_y, setCurr_y] = useState(start.y);
-  const [frozen, setFrozen] = useState(false);
+  const [frozen, setFrozen] = useState(props.frozen);
 
+  useEffect(()=>{
+    if(props.moves) {
+      setMoves(props.moves.map(([x,y])=>x+';'+y)); }
+  }, [props.moves]);
+  //useEffect(()=>{setMoves(props.moves || moves)}, [props.moves])
   useEffect(generate_board, [moves])
   useEffect(maybe_finish_game, [moves])
 
