@@ -49,7 +49,7 @@ class Consts {
     static photoUrl = "photoUrl";
     static scores = "scores";
     static solveTime = "solveTime";
-    static solution = "solution";
+    static solution = "solution_v2";
     static title = "title";
     static userDisplayName = "userDisplayName";
     static userId = "userId";
@@ -144,7 +144,54 @@ class Error {
 }
 
 class Firestore {
+    static update = class {
+        static async grid(gridid, attrs) {
+            if (typeof(attrs) !== Type.object) { return Error.invalidType(); }
+            const {matrix, title, solution} = attrs;
 
+            // Synchronous Checks
+            if (title !== undefined && typeof(title) !== Type.string) { return Error.invalidType(); }
+            if (matrix !== undefined && typeof(matrix) !== Type.object) { return Error.invalidType(); }
+            if (solution !== undefined && typeof(solution) !== Type.object) { return Error.invalidType(); }
+
+            const data = null;
+            if (matrix !== undefined) {
+              data = Firestore.HASH.convertToGridDataString(matrix);
+              if (data === null) { return Error.invalidMatrix(); }
+            }
+            let sol = null;
+            if (solution !== undefined) {
+              sol = Firestore.HASH.convertToSolutionString(solution);
+              if (sol === null) { return Error.invalidSolution(); }
+            }
+            console.log("revving transaction");
+            try {
+
+                // Run Transaction
+                return await REF.BASE.runTransaction(async function (transaction) {
+
+                    // Asynchronous Checks
+                    if (!(await transaction.get(REF.GRIDS.doc(gridid))).exists) { return Error.invalidGrid(); }
+
+                    // Write
+                    const dict = {};
+                    if (title) { dict[Consts.title] = title; }
+                    if (data) { dict[Consts.data] = data; }
+                    if (sol) { dict[Consts.solution] = sol; }
+                    transaction.update(REF.GRIDS.doc(gridid), dict);
+
+                    // Return Result
+                    return dict;
+
+                });
+
+            }
+
+            // Catch Errors
+            catch { return Error.firebaseFaliure(); }
+
+        }
+    }
     static add = class {
 
         static async follow(userId, followingId) {
@@ -478,7 +525,7 @@ class Firestore {
                 if (user === null) { return Error.firebaseFaliure() }
                 dict[Consts.creatorDisplayName] = user.displayName;
                 dict[Consts.data] = Firestore.HASH.convertToGridDataMatrix(dict.data);
-                dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution);
+                dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution_v2);
                 dict[Consts.liked] = false;
                 return dict;
             }
@@ -497,7 +544,7 @@ class Firestore {
                     const dict = doc.data();
                     dict[Consts.creatorDisplayName] = user.displayName;
                     dict[Consts.data] = Firestore.HASH.convertToGridDataMatrix(dict.data);
-                    dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution);
+                    dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution_v2);
                     if (requestorId === null) {
                         dict[Consts.liked] = false;
                     } else {
@@ -572,7 +619,7 @@ class Firestore {
                     if (user === null) { return Error.firebaseFaliure(); }
                     dict[Consts.creatorDisplayName] = user.displayName;
                     dict[Consts.data] = Firestore.HASH.convertToGridDataMatrix(dict.data);
-                    dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution);
+                    dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution_v2);
                     dict[Consts.liked] = false;
                     grids.push(dict);
                 }
@@ -669,7 +716,7 @@ class Firestore {
             if (typeof(string) !== Type.string) { return Error.invalidType(); }
             let matrix = [];
             const lines = string.split("-");
-            for (const line of lines) { matrix.push(line.split("").map(char => parseInt(char))); }
+            for (const line of lines) { matrix.push(line.split(";").map(char => parseInt(char))); }
             return matrix;
         }
 
@@ -677,7 +724,7 @@ class Firestore {
             let lines = [];
             for (const array of solution) {
                 if (array.length !== 2) { return null; }
-                lines.push(array.join(""));
+                lines.push(array.join(";"));
             }
             return lines.join("-");
         }

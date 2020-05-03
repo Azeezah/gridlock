@@ -16,13 +16,13 @@ function Solution(props) {
   }
 
   function resume() {
-    console.log(props.grid.solution);
+    console.log(props.grid.solution_v2);
     const timeSincePause = Date.now() - pauseTime;
     const newStartTime = startTime + timeSincePause;
     setStartTime(newStartTime);
 
     setIntervalId(setInterval(() => {
-      if (steps > props.grid.solution.length) {
+      if (steps > props.grid.solution_v2.length) {
         pause();
       }
       const secsElapsed = (Date.now() - newStartTime)/1000;
@@ -32,7 +32,7 @@ function Solution(props) {
   useEffect(resume, []);
 
   return (<Board grid={props.grid.data}
-                 moves={props.grid.solution.slice(0, steps)}
+                 moves={props.grid.solution_v2.slice(0, steps)}
                  frozen={true} />);
 }
 

@@ -30,16 +30,17 @@ function Play(props) {
   const [playedFirstMove, setPlayedFirstMove] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
 
-  const default_grid ={
+  const default_grid = {
     title: "Armada",
     creatorDisplayName: "Jeremy",
+    id: "Armada_by_Jeremy",
     data: [
       ["1", "1", "1", "1"],
       ["1", "1", "S", "1"],
       ["0", "0", "1", "1"],
       ["0", "0", "F", "0"]
     ],
-    solution: [
+    solution_v2: [
       [2,1],[1,1],[0,1],[0,0],[1,0],[2,0],[3,0],[3,1],[3,2],[2,2],[2,3]
     ],
   };
@@ -56,11 +57,12 @@ function Play(props) {
   }
   useEffect(startTimer, []);
 
-  async function finishGame() {
+  async function finishGame(solution) {
     console.log("Finished game.");
     const score_sec = stopTimer();
     setFinished(true);
     setScore(score_sec);
+    saveSolution(solution);
     if (!props.user || !gridId) {
       console.log("Cannot upload score without logging in.");
       return;
@@ -71,6 +73,16 @@ function Play(props) {
       console.log("Couldn't upload score.");
     } else {
       console.log("Uploaded score.")
+    }
+  }
+
+  async function saveSolution(solution) {
+    const updatedGrid = await Firestore.update.grid(grid.id, {solution:solution});
+    if (!updatedGrid) {
+      console.log("Couldn't save solution.");
+    } else {
+      console.log("Saved solution.");
+      console.log(updatedGrid);
     }
   }
 
@@ -153,7 +165,7 @@ function Play(props) {
             { !showSolution
               ? <Button onClick={restart}>Restart</Button>
               : <></> }
-            { !showSolution && grid && grid.solution
+            { !showSolution && grid && grid.solution_v2
               ? <Button onClick={giveup}>Give Up</Button>
               : <></> }
           </div>
