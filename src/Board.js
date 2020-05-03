@@ -12,7 +12,7 @@ function Board(props) {
   const [board, setBoard] = useState([])
   const MAX_WIDTH = 10000;  // Used to create unique html index keys.
 
-  // Count the number of 1's in the grid, and add 2 for the start and end.
+  // Sum the 1s in the grid, and add 2 for the start and end.
   const BOARD_SIZE = !props.grid ? null
     : 2 + props.grid.reduce((sum, row) =>
                             sum + row.reduce((a, b)=>a+(+b||0), 0), 0);
@@ -48,7 +48,12 @@ function Board(props) {
 
   function maybe_finish_game() {
     if (moves.length === BOARD_SIZE && props.finishGame) {
-      props.finishGame();
+      // Reinidex moves to have nonegative indices.
+      let min_x = Math.min(...moves.map(mv=>+mv.match(/-?\d+/g)[0]));
+      let min_y = Math.min(...moves.map(mv=>+mv.match(/-?\d+/g)[1]));
+      const solution = moves.map(
+        mv=>mv.match(/-?\d+/g).map((str,i)=>(+str)-[min_x, min_y][i]));
+      props.finishGame(solution);  // Use this solution instead of live updated state since it's updated synchronously.
       setFrozen(true);
     }
   }
