@@ -595,6 +595,42 @@ class Firestore {
             return grids;
         }
 
+        static async recentGridsForUnregisteredUser() {
+            try {
+                const querySnapshot = await REF.GRIDS.orderBy(Consts.created, Consts.descending).limit(Consts.maxTrendingGridsOnPage).get();
+                let grids = [];
+                let promises = [];
+                querySnapshot.docs.map(doc => promises.push(Firestore.get.user(doc.data().creatorId)))
+                let results = await Promise.all(promises);
+                for (const [index, doc] of querySnapshot.docs.entries()) {
+                    const dict = doc.data();
+                    const user = results[index];
+                    if (user === null) { return Error.firebaseFaliure(); }
+                    dict[Consts.creatorDisplayName] = user.displayName;
+                    dict[Consts.data] = Firestore.HASH.convertToGridDataMatrix(dict.data);
+                    dict[Consts.solution] = Firestore.HASH.convertToSolutionMatrix(dict.solution);
+                    dict[Consts.liked] = false;
+                    grids.push(dict);
+                }
+                return grids;
+            }
+            catch { return Error.firebaseFaliure(); }
+        }
+
+        static async recentGridsForUser(id) {
+            if (typeof(id) !== Type.string) { return Error.invalidType(); }
+            if (await Firestore.get.user(id) === null) { return Error.invalidUser(); }
+            const grids = await Firestore.get.recentGridsForUnregisteredUser();
+            if (grids === null) { return null; }
+            let promises = [];
+            grids.map(grid => promises.push(Firestore.get.like(id, grid.id)));
+            let results = await Promise.all(promises);
+            for (const [index, grid] of grids.entries()) {
+                if (results[index] !== null) { grid[Consts.liked] = true; }
+            }
+            return grids;
+        }
+
         static async user(id) {
             if (typeof(id) !== Type.string) { return Error.invalidType(); }
             try {
