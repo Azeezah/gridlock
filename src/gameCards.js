@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SingleCard from './card.js';
 import NewCard from './NewCard.js';
+import BlankCard from './BlankCard.js';
 import './gameCards.css';
 import Firestore from './services/firestore.js';
 import Authentication from './services/authentication.js';
@@ -42,9 +43,11 @@ function GameCards() {
     setgridlist(user_grid_list);
   }
 
+  console.log("grid_list", grid_list)
      return (
         <div className="Explore-body">
-        {grid_list? <NewCard /> : " "}
+        <NewCard />
+       {grid_list && grid_list.length ? "" :Array(8).fill().map(()=><BlankCard />)}
        {grid_list ? (grid_list).map(function(grid, key) {
           return < SingleCard
           name = {grid.title}
