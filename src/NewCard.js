@@ -10,6 +10,7 @@ import  plusSign from "./plusSign.png";
 const useStyles = makeStyles({
   root: {
     maxWidth: 1000,
+    cursor: "pointer",
   },
   media: {
     height: 40,
