@@ -66,7 +66,7 @@ function ExplorePage(props) {
       >
         <Tab label="Trending" />
         <Tab label="Recent" />
-        { user ? <Tab label="Following" /> : <></> }
+        { user ? <Tab label="Following" /> : "" }
       </Tabs>
     </AppBar>
     <TabPanel value={tabindex} index={0}>
