@@ -3,29 +3,27 @@ import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
 import CardMedia from "@material-ui/core/CardMedia";
 
-import  "./NewCard.css";
-import  plusSign from "./plusSign.png";
-
+//import  "./NewCard.css";
 
 const useStyles = makeStyles({
   root: {
     maxWidth: 1000,
-    cursor: "pointer",
+    background: '#ddd',
+    cursor: 'progress',
   },
   media: {
     height: 40,
   },
 });
 
-function NewCard({ name, author, gameLink, numberOfLikes }) {
+function BlankCard() {
   const classes = useStyles();
 
   return (
-    <Card className={`${classes.root} newCard `} onClick={event => window.location.href='/create'}>
+    <Card className={`${classes.root} blankCard `}>
     <CardMedia  className={classes.media} />
-      <img className="plusSign" src={plusSign} />
     </Card>
   );
 }
 
-export default NewCard;
+export default BlankCard;
